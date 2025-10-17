@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace ConsoleApplication2
 {
@@ -18,10 +19,12 @@ namespace ConsoleApplication2
 
         public virtual void PrintInfo()
         {
-            Console.WriteLine($"Model: {Model}; Color: {Color}; Year: {Year}");
+            Console.WriteLine("------------------------------------------");
+            Console.WriteLine($"ТИП: Транспорт");
+            Console.WriteLine($"Модель: {Model}; Колір: {Color}; Рік: {Year}");
         }
     }
-
+    
     public class Car : Transport
     {
         public string FuelType { get; set; }
@@ -35,7 +38,7 @@ namespace ConsoleApplication2
         public override void PrintInfo()
         {
             base.PrintInfo();
-            Console.WriteLine($"FuelType: {FuelType}");
+            Console.WriteLine($"Особливість: Легковий автомобіль (Паливо: {FuelType})");
         }
     }
 
@@ -52,10 +55,10 @@ namespace ConsoleApplication2
         public override void PrintInfo()
         {
             base.PrintInfo();
-            Console.WriteLine($"Capacity: {Capacity}");
+            Console.WriteLine($"Особливість: Вантажівка (Вантажопідйомність: {Capacity} кг)");
         }
     }
-    
+
     public class Motorcycle : Transport
     {
         public string Engine { get; set; }
@@ -69,9 +72,46 @@ namespace ConsoleApplication2
         public override void PrintInfo()
         {
             base.PrintInfo();
-            Console.WriteLine($"Engine: {Engine}");
+            Console.WriteLine($"Особливість: Мотоцикл (Тип двигуна: {Engine})");
         }
     }
+    
+    public class Bus : Transport
+    {
+        public int NumberOfSeats { get; set; }
+
+        public Bus(string model, string color, int year, int numberOfSeats)
+            : base(model, color, year)
+        {
+            NumberOfSeats = numberOfSeats;
+        }
+
+        public override void PrintInfo()
+        {
+            base.PrintInfo();
+            Console.WriteLine($"Особливість: Автобус (Кількість місць: {NumberOfSeats})");
+        }
+    }
+
+    public class Bicycle : Transport
+    {
+       
+        public bool HasGears { get; set; } 
+
+        public Bicycle(string model, string color, int year, bool hasGears)
+            : base(model, color, year)
+        {
+            HasGears = hasGears;
+        }
+
+        public override void PrintInfo()
+        {
+            base.PrintInfo();
+            string gearStatus = HasGears ? "Має передачі" : "Не має передач";
+            Console.WriteLine($"Особливість: Велосипед ({gearStatus})");
+        }
+    }
+    
     
     public class TransportService
     {
@@ -89,24 +129,27 @@ namespace ConsoleApplication2
 
         public void RemoveTransport(string model)
         {
-            var transport = transports.Find(t => t.Model == model);
+            var transport = transports.Find(t => t.Model.Equals(model, StringComparison.OrdinalIgnoreCase));
             if (transport != null)
             {
                 transports.Remove(transport);
-                Console.WriteLine($"Transport {model} removed.");
+                Console.WriteLine($"\n--> Транспорт '{model}' успішно видалено.");
             }
             else
             {
-                Console.WriteLine($"Transport {model} not found.");
+                Console.WriteLine($"\n--> Транспорт '{model}' не знайдено.");
             }
         }
 
         public void PrintTransports()
         {
+            Console.WriteLine("\n*** СПИСОК УСІХ ТРАНСПОРТНИХ ЗАСОБІВ ***");
             foreach (var transport in transports)
             {
-                transport.PrintInfo();
+                
+                transport.PrintInfo(); 
             }
+            Console.WriteLine("------------------------------------------");
         }
 
         public int GetTotal()
@@ -116,10 +159,10 @@ namespace ConsoleApplication2
 
         public Transport GetTransport(string model)
         {
-            var transport = transports.Find(t => t.Model == model);
+            var transport = transports.Find(t => t.Model.Equals(model, StringComparison.OrdinalIgnoreCase));
             if (transport == null)
             {
-                Console.WriteLine("Transport not found");
+                Console.WriteLine("Транспорт не знайдено.");
             }
             return transport;
         }
@@ -130,22 +173,45 @@ namespace ConsoleApplication2
     {
         public static void Main(string[] args)
         {
-            Car car = new Car("BMW", "Black", 2010, "Petrol");
-            Truck truck = new Truck("Ford", "White", 2015, 1000);
-            Motorcycle motorcycle = new Motorcycle("Honda", "Red", 2018, "Electric");
+            Console.OutputEncoding = Encoding.UTF8;
+            
+            // Створення існуючих об'єктів
+            Car car = new Car("BMW X5", "Black", 2010, "Petrol");
+            Truck truck = new Truck("Ford F-150", "White", 2015, 1000);
+            Motorcycle motorcycle = new Motorcycle("Honda Rebel", "Red", 2018, "Electric");
+
+            // Створення НОВИХ об'єктів
+            Bus bus = new Bus("Mercedes Citaro", "Yellow", 2022, 55);
+            Bicycle bicycle = new Bicycle("Trek Marlin", "Blue", 2023, true);
 
             TransportService transportService = new TransportService();
+            
+            // Додавання всіх об'єктів до сервісу
             transportService.AddTransport(car);
             transportService.AddTransport(truck);
             transportService.AddTransport(motorcycle);
+            transportService.AddTransport(bus);      // Новий клас
+            transportService.AddTransport(bicycle);  // Новий клас
 
+            // 1. Демонстрація поліморфізму
             transportService.PrintTransports();
 
-            Console.WriteLine($"Total transports: {transportService.GetTotal()}");
-            Console.WriteLine($"Found transport: {transportService.GetTransport("BMW")?.Model}");
+            // 2. Виведення загальної кількості
+            Console.WriteLine($"\n*** ПІДСУМКИ ***");
+            Console.WriteLine($"Загальна кількість транспортних засобів: {transportService.GetTotal()}");
+            
+            // 3. Пошук існуючих і нових об'єктів
+            Transport foundCar = transportService.GetTransport("BMW X5");
+            Transport foundBus = transportService.GetTransport("Mercedes Citaro");
+            Console.WriteLine($"Знайдено автомобіль: {foundCar?.Model} ({foundCar?.Color})");
+            Console.WriteLine($"Знайдено автобус: {foundBus?.Model} ({foundBus?.Color})");
 
-            transportService.RemoveTransport("Ford");
-            Console.WriteLine($"Total transports after removal: {transportService.GetTotal()}");
+            // 4. Видалення об'єкта
+            transportService.RemoveTransport("Ford F-150");
+            Console.WriteLine($"Загальна кількість транспортних засобів після видалення: {transportService.GetTotal()}");
+            
+            // 5. Повторне виведення для перевірки видалення
+            transportService.PrintTransports();
         }
     }
 }
